@@ -1,0 +1,24 @@
+{
+  "name": "cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ifroz <ifrozen@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "gulp-browserify": "^0.5.1",
+    "gulp-copy": "0.0.2",
+    "gulp-serve": "^0.3.0",
+    "lodash": "^3.2.0",
+    "react": "^0.12.2"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-react": "^2.0.0",
+    "gulp-reactify": "^1.1.0",
+    "gulp-watch": "^4.1.1"
+  }
+}
