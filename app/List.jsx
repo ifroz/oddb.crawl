@@ -1,4 +1,6 @@
-var _ = require('lodash');
+var React = require('react'),
+    _ = require('lodash');
+
 var List = React.createClass({
     render: function() {
         var listItems = _.map(this.props.items || [], function(item) {
@@ -6,7 +8,7 @@ var List = React.createClass({
                 <tr>
                     <td>{item.name}</td>
                     <td>
-                        <span className="glyphicon glyphicon-trash"></span>
+                        <span className="glyphicon glyphicon-trash pull-right"></span>
                     </td>
                 </tr>
             );
@@ -26,4 +28,5 @@ var List = React.createClass({
         );
     }
 });
+
 module.exports = List;

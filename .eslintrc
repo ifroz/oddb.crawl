@@ -1,0 +1,16 @@
+{
+  "ecmaFeatures": {
+    "jsx": true
+  },
+  "rules": {
+    "quotes": [1, "single", "avoid-escape"],
+    "indent": [2, 4, {"indentSwitchCase": true}],
+    "strict": false,
+    "no-console": false
+  },
+  "globals": {
+    "require": true,
+    "module": true,
+    "console": true
+  }
+}
