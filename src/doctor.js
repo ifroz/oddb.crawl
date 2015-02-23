@@ -25,7 +25,9 @@ var Doctor = sql.define('output', {
   ownerId:          { type: Sequelize.INTEGER, field: 'owner_id' },
   updatedAt:        { type: Sequelize.DATE, field: 'updated_at'},
   localId:          { type: Sequelize.INTEGER, field: 'local_id'},
-  status:           { type: Sequelize.STRING }
+  status:           { type: Sequelize.STRING },
+
+  email: { type: Sequelize.STRING }
 }, {
   tableName: 'oddb.output'
 });

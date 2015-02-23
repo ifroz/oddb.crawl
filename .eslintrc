@@ -4,7 +4,7 @@
   },
   "rules": {
     "quotes": [1, "single", "avoid-escape"],
-    "indent": [2, 4, {"indentSwitchCase": true}],
+    "indent": [2, 2, {"indentSwitchCase": true}],
     "strict": false,
     "no-console": false
   },
