@@ -13,22 +13,38 @@ findFrequentFirstNames(function(results) {
     var queryTerm = result.values.firstName;
     if (!queryTerm) { return callback(); }
 
+    var fileName = S(queryTerm).trim().camelize().s + '.json';
+    var fileExists = fs.existsSync(fileName);
+
     async.parallel({
-      oddb: _.partial(oddb.query, queryTerm),
+      //oddb: fileExists ?
+      //    function(cb) { cb(null, JSON.parse(fs.readFileSync(fileName, {encoding: 'utf8'}))); } :
+      //    _.partial(oddb.query, queryTerm),
+      oddb: function(cb) {
+        if (fileExists) {
+          cb(null, JSON.parse(fs.readFileSync(fileName, {encoding: 'utf8'})));
+        } else {
+          oddb.query(queryTerm, cb);
+        }
+      },
+      //oddb: _.partial(oddb.query, queryTerm),
       sql: sqlWhere({ firstName: queryTerm })
     }, function(err, res) {
-      fs.writeFileSync(
-          S(queryTerm).camelize().s + '.json',
-          JSON.stringify(res.oddb));
+
+      if (!fileExists) {
+        fs.writeFileSync(fileName, JSON.stringify(res.oddb));
+      }
       var matches = matchDatasets( _.filter(res.oddb, 'email'), res.sql );
       var found = _.filter(matches, function(m) {
         return _.compact(m).length > 0;
       });
-      fs.writeFileSync(
-          S(queryTerm).camelize().s + '.found.json',
-          JSON.stringify(found),
-          _.ary(console.log, 1));
+      if (found.length) {
+        fs.writeFileSync(
+            fileName.replace('.json', '.found.json'),
+            JSON.stringify(found, null, ''));
+      }
       var stat = {
+        name: queryTerm,
         total: matches.length,
         found: found.length
       };
@@ -63,47 +79,46 @@ function sqlWhere(whereClause) {
       where: whereClause
     }).then(function(res) {
       cb(null, _.pluck(res, 'dataValues'));
-    }).catch(cb);
+    }).catch(function(err) { cb(err); });
   };
 }
 
 function matchDatasets(srcDoctors, destDoctors) {
-  return _.each(destDoctors, function(destDoctor) {
-    var matches = _.filter(srcDoctors, function(srcDoctor) {
-      if (compare(srcDoctor, destDoctor)) {
+  return _.map(destDoctors, function(sqlDoctor) {
+    var matches = _.filter(srcDoctors, function(oddbDoctor) {
+      if (compare(oddbDoctor, sqlDoctor)) {
         return {
-          localId: destDoctor.localId,
-          nameA: _.pick(destDoctor, 'firstName', 'lastName'),
-          nameB: _.pick(srcDoctor, 'firstName', 'lastName'),
-          email: srcDoctor.email
+          localId: sqlDoctor.localId,
+          nameA: _.pick(sqlDoctor, 'firstName', 'lastName'),
+          nameB: _.pick(oddbDoctor, 'firstName', 'lastName'),
+          email: oddbDoctor.email
         };
       }
       return false;
     });
     var info = {
-      sql: destDoctor,
+      sql: sqlDoctor,
       oddb: matches,
       oddbCount: matches.length,
       hasOneMatch: matches.length === 1
     };
 
     if (info.hasOneMatch) {
-      console.log('MATCHED(ONE)::', info.sql.localId, info.oddb[0].email);
+      //console.log('MATCHED(ONE)             ', info.sql.id, info.oddb[0].email);
     }
-    if (info.oddbCount) {
-      console.log('DEBUG(FOUND_ANY)::', JSON.stringify(info, null, 2));
-    }
+    //if (info.oddbCount) { console.log('DEBUG(FOUND_ANY)::', JSON.stringify(info, null, 2)); }
 
     return matches;
   });
 }
 
+var formatName = function(d) { // the whole name in one string
+  var str = d.firstName + ' ' + d.lastName;
+  return _.compact(str.trim().split(' ')).join(' ');
+};
+
 var matchers = {
   name: function compareNames(a, b) {
-    var formatName = function(d) { // the whole name in one string
-      var str = d.firstName + ' ' + d.lastName;
-      return _.compact(str.trim().split(' ')).join(' ');
-    };
     var doctors = _.mapValues({a: a, b: b}, function(doc) {
       var obj = { name: formatName(doc) };
       obj.words = obj.name.split(' ');
@@ -112,13 +127,13 @@ var matchers = {
     });
 
     if (doctors.a.name === doctors.b.name) {
-      return true; // fully matching name
+      return 'exact'; // fully matching name
     }
 
     if (doctors.a.wordCount !== doctors.b.wordCount) {
       var commonWords = _.intersection(doctors.a.words, doctors.b.words);
       if (commonWords.length === _(doctors).values().pluck('wordCount').min()) {
-        return true; // words are matching
+        return 'partial'; // words are matching
       }
     } else {
       return false;
@@ -126,19 +141,47 @@ var matchers = {
   },
   phone: function comparePhoneNumbers(a, b) {
     return !_.isEmpty(_.intersection.apply(null,
-        _([a, b]).pick(['phone', 'mobilePhone', 'fax']).map(_.values).value()));
-  }
+        _([a, b]).
+            pick(['phone', 'mobilePhone', 'fax']).
+            map(_.values).
+            map(function(strings) {
+              return _.map(strings, function formatPhoneNumber(phoneNumber) {
+                return phoneNumber.replace(/[^0-9]/ig, '');
+              });
+            }).
+            value()));
+  },
+  city: function(oddb, sql) {
+    return oddb.address ? oddb.address.indexOf(sql.city) > -1 : false;
+  },
+
 };
 
-function compare(a, b) {
-  var formatted = { a: format(a), b: format(b) };
-  return !!_(matchers).
-      mapValues(function(fn) {
-        return fn(formatted.a, formatted.b);
-      }).value().
-      //tap(function(matches) { var found = _(matches).values().includes(true); }).
 
-      name; // name match is good enough.
+
+function compare(oddbDoctor, sqlDoctor) {
+  var formatted = { a: format(oddbDoctor), b: format(sqlDoctor) };
+  var matchResults = _.mapValues(matchers, function(fn) {
+    return fn(formatted.a, formatted.b);
+  });
+
+  if (matchResults.name === 'exact') {
+    console.log('MATCH(EXACT)', sqlDoctor.id, oddbDoctor.email, "\n" +
+        JSON.stringify(matchResults), '::ID::',
+        sqlDoctor.id,
+        JSON.stringify(oddbDoctor));
+    return true;
+  } else if (matchResults.name === 'partial' && matchResults.phone) {
+    console.log('MATCH(PARTIAL_WITH_PHONE)', sqlDoctor.id, oddbDoctor.email);
+    return true;
+  } else if (matchResults.name === 'partial' && matchResults.city) {
+    console.log('MATCH(PARTIAL_WITH_CITY )', sqlDoctor.id, oddbDoctor.email);
+  } else if (matchResults.phone) {
+    console.log('MATCH(PHONE_ONLY        )', sqlDoctor.id, oddbDoctor.email);
+    return false;
+  } else {
+    return false;
+  }
 }
 
 function format(a) {
