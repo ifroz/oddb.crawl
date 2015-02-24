@@ -9,9 +9,13 @@ var getSearchUrl = function(term, range) {
 };
 
 var hasPagination = function(rows) {
-  return _.filter(rows, function(row) {
-    return row.length === 1 && row[0] === 'a-d | e-h | i-l | m-p | q-t | u-z';
-  }).length === 1;
+  var paginators = _.filter(rows, function(row) {
+    var bool = row.length === 1 && row[0].match(/[a-q]-[d-z]\s\|\s[a-q]-[d-z]/);
+    return !!bool;
+  });
+  console.log('PAGINATORS GONNA PAGINATE', paginators.length);
+  //return paginators.length === 1;
+  return paginators.length >= 1;
 };
 
 var isDataRow = function(row) {
@@ -89,6 +93,7 @@ var self = {
       }).value();
 
       var hasMultiplePages = hasPagination(rows);
+      console.log('HAS_MULTIPLE_PAGES? ', hasMultiplePages, term);
       cb(null, {
         results: results,
         hasPagination: hasMultiplePages,

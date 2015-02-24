@@ -8,9 +8,13 @@ var oddb = require('./net.oddb');
 var sequelize = require('sequelize'),
     Doctor = require('./doctor');
 
-findFrequentFirstNames(function(results) {
+//genFrequentFinder('name_1', 'lastName')(
+genFrequentFinder('name_2', 'firstName')(
+    function(results) {
   async.eachSeries(results, function(result, callback) {
     var queryTerm = result.values.firstName;
+    //var queryTerm = result.values.lastName;
+
     if (!queryTerm) { return callback(); }
 
     var fileName = S(queryTerm).trim().camelize().s.replace('/', '_') + '.json';
@@ -24,7 +28,10 @@ findFrequentFirstNames(function(results) {
     }
 
     async.parallel({
-      sql: sqlWhere({ firstName: queryTerm }),
+      sql: sqlWhere({
+        firstName: queryTerm
+        //lastName: queryTerm
+      }),
       oddb: function(cb) {
         if (fileExists) {
           cb(null, JSON.parse(fs.readFileSync(fileName, { encoding: 'utf8' })));
@@ -63,6 +70,28 @@ findFrequentFirstNames(function(results) {
   });
 });
 
+
+function genFrequentFinder(dbFieldName, localFieldName) {
+  return function findFrequentWhatevers(options, cb) {
+    if (typeof options === 'function') {
+      cb = options;
+      options = {};
+    }
+    return Doctor.findAll(_.assign({
+      where: {
+        email: {$ne: null}
+      },
+      attributes: [
+        [dbFieldName, localFieldName],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'cnt']
+      ],
+      order: '`cnt` DESC',
+      group: [dbFieldName]
+    }, options || {})).then(cb);
+  };
+}
+
+/*
 function findFrequentFirstNames(options, cb) {
   if (typeof options === 'function') {
     cb = options;
@@ -77,6 +106,7 @@ function findFrequentFirstNames(options, cb) {
     group: ['name_2']
   }, options || {})).then(cb);
 }
+*/
 
 function sqlWhere(whereClause) {
   return function(cb) {

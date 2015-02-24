@@ -5110,6 +5110,141 @@ var emails = [{id:10296, email: "paffolte@hin.ch"},
   {id: 33309, email: 'rwilli@hin.ch'}];
 
 
+emails = [
+  {
+    "id": 32074,
+    "email": "veraguth@orl.usz.ch"
+  },
+  {
+    "id": 20968,
+    "email": "charalambos.karypidis@gef.be.ch"
+  },
+  {
+    "id": 12998,
+    "email": "hubrueng@hin.ch"
+  },
+  {
+    "id": 33854,
+    "email": "ziadem@isuisse.com"
+  },
+  {
+    "id": 18383,
+    "email": "dominique.guenthart@freesurf.ch"
+  },
+  {
+    "id": 31992,
+    "email": "menno.vanrooijen@hin.ch"
+  },
+  {
+    "id": 14330,
+    "email": "csontoszs@hotmail.com"
+  },
+  {
+    "id": 46592,
+    "email": "admin@patholaenggasse.ch"
+  },
+  {
+    "id": 15092,
+    "email": "dr.trifon.dontschev@websud.ch"
+  },
+  {
+    "id": 12042,
+    "email": "isabelle.binet@kssg.ch"
+  },
+  {
+    "id": 17528,
+    "email": "n.ghafoor@rehab.ch"
+  },
+  {
+    "id": 23104,
+    "email": "lukaschek.johannes@bluewin.ch"
+  },
+  {
+    "id": 10741,
+    "email": "oernulf.arneberg@suedhang.ch"
+  },
+  {
+    "id": 13862,
+    "email": "htchen77@hotmail.com"
+  },
+  {
+    "id": 48816,
+    "email": "malin.maeder-ingvar@chuv.hospvd.ch"
+  },
+  {
+    "id": 22634,
+    "email": "holger.leinfelder@klinikschuetzen.ch"
+  },
+  {
+    "id": 12828,
+    "email": "ebreu@hin.ch"
+  },
+  {
+    "id": 21312,
+    "email": "kisfaludy@geneva-link.ch"
+  },
+  {
+    "id": 40563,
+    "email": "guebelin@centralnet.ch"
+  },
+  {
+    "id": 41930,
+    "email": "m.f.farschtschian@bluewin.ch"
+  },
+  {
+    "id": 40039,
+    "email": "wstrazyn@hin.ch"
+  },
+  {
+    "id": 42995,
+    "email": "rbochud@hin.ch"
+  },
+  {
+    "id": 34004,
+    "email": "vzortea@hin.ch"
+  },
+  {
+    "id": 23292,
+    "email": "lmagnane@hin.ch"
+  },
+  {
+    "id": 40472,
+    "email": "mattanza@bluewin.ch"
+  },
+  {
+    "id": 15022,
+    "email": "a.djalili@freesurf.ch"
+  },
+  {
+    "id": 13780,
+    "email": "vchabot@worldcom.ch"
+  },
+  {
+    "id": 50508,
+    "email": "cpasqual@hin.ch"
+  },
+  {
+    "id": 26963,
+    "email": "srao2000@bluewin.ch"
+  },
+  {
+    "id": 33966,
+    "email": "hansruedi.ziswiler@insel.ch"
+  },
+  {
+    "id": 21730,
+    "email": "akoeppel@hin.ch"
+  },
+  {
+    "id": 26440,
+    "email": "hans.pihan@insel.ch"
+  },
+  {
+    "id": 44147,
+    "email": "jkuchen@bluewin.ch"
+  }
+];
+
 var _ = require('lodash'),
     async = require('async');
 var Doctor = require('./doctor');

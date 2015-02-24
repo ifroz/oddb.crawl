@@ -3,3 +3,4 @@ dist
 projectFilesBackup
 .idea/*
 dumps/*
+jsons/*
