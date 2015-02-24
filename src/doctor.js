@@ -27,8 +27,8 @@ var Doctor = sql.define('output', {
   localId:          { type: Sequelize.INTEGER, field: 'local_id'},
   status:           { type: Sequelize.STRING },
 
-  email: { type: Sequelize.STRING },
-  jsonMatches: { type: Sequelize.TEXT, field: 'json_matches' }
+  //jsonMatches: { type: Sequelize.TEXT, field: 'json_matches' },
+  email: { type: Sequelize.STRING }
 }, {
   tableName: 'oddb.output'
 });

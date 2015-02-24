@@ -13,26 +13,31 @@ findFrequentFirstNames(function(results) {
     var queryTerm = result.values.firstName;
     if (!queryTerm) { return callback(); }
 
-    var fileName = S(queryTerm).trim().camelize().s + '.json';
+    var fileName = S(queryTerm).trim().camelize().s.replace('/', '_') + '.json';
     var fileExists = fs.existsSync(fileName);
 
+    if (fileExists) {
+      process.nextTick(function() {
+        callback();
+      });
+      return;
+    }
+
     async.parallel({
-      //oddb: fileExists ?
-      //    function(cb) { cb(null, JSON.parse(fs.readFileSync(fileName, {encoding: 'utf8'}))); } :
-      //    _.partial(oddb.query, queryTerm),
+      sql: sqlWhere({ firstName: queryTerm }),
       oddb: function(cb) {
         if (fileExists) {
-          cb(null, JSON.parse(fs.readFileSync(fileName, {encoding: 'utf8'})));
+          cb(null, JSON.parse(fs.readFileSync(fileName, { encoding: 'utf8' })));
         } else {
           oddb.query(queryTerm, cb);
         }
-      },
-      //oddb: _.partial(oddb.query, queryTerm),
-      sql: sqlWhere({ firstName: queryTerm })
+      }
     }, function(err, res) {
 
       if (!fileExists) {
         fs.writeFileSync(fileName, JSON.stringify(res.oddb));
+      } else {
+        return callback(null, null);
       }
       var matches = matchDatasets( _.filter(res.oddb, 'email'), res.sql );
       var found = _.filter(matches, function(m) {
