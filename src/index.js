@@ -29,7 +29,8 @@ genFrequentFinder('name_2', 'firstName')(
 
     async.parallel({
       sql: sqlWhere({
-        firstName: queryTerm
+        firstName: queryTerm,
+        email: null
         //lastName: queryTerm
       }),
       oddb: function(cb) {
@@ -58,9 +59,9 @@ genFrequentFinder('name_2', 'firstName')(
       var stat = {
         name: queryTerm,
         total: matches.length,
-        found: found.length
+        found: found.length,
+        withoutEmail: res.oddb.length - found.length
       };
-
       stat.percentage = stat.found / stat.total;
 
       console.log('STAT:: ', stat);
@@ -79,7 +80,7 @@ function genFrequentFinder(dbFieldName, localFieldName) {
     }
     return Doctor.findAll(_.assign({
       where: {
-        email: {$ne: null}
+        email: null
       },
       attributes: [
         [dbFieldName, localFieldName],
@@ -90,23 +91,6 @@ function genFrequentFinder(dbFieldName, localFieldName) {
     }, options || {})).then(cb);
   };
 }
-
-/*
-function findFrequentFirstNames(options, cb) {
-  if (typeof options === 'function') {
-    cb = options;
-    options = {};
-  }
-  return Doctor.findAll(_.assign({
-    attributes: [
-      ['name_2', 'firstName'],
-      [sequelize.fn('COUNT', sequelize.col('id')), 'cnt']
-    ],
-    order: '`cnt` DESC',
-    group: ['name_2']
-  }, options || {})).then(cb);
-}
-*/
 
 function sqlWhere(whereClause) {
   return function(cb) {
@@ -149,7 +133,9 @@ function matchDatasets(srcDoctors, destDoctors) {
 
 var formatName = function(d) { // the whole name in one string
   var str = d.firstName + ' ' + d.lastName;
-  return _.compact(str.trim().split(' ')).join(' ');
+  return _(str.trim().split(' ')).compact().filter(function(word) {
+    return word.replace(/\./g, '').length > 2;
+  }).join(' ');
 };
 
 var matchers = {
