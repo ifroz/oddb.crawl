@@ -13,9 +13,7 @@ var hasPagination = function(rows) {
     var bool = row.length === 1 && row[0].match(/[a-q]-[d-z]\s\|\s[a-q]-[d-z]/);
     return !!bool;
   });
-  console.log('PAGINATORS GONNA PAGINATE', paginators.length);
-  //return paginators.length === 1;
-  return paginators.length >= 1;
+  return paginators.length >= 1; // === 1;
 };
 
 var isDataRow = function(row) {
@@ -27,34 +25,27 @@ var hasEmail = function(row) {
 }
 
 var setRandomTimeout = function(fn, delayFrom, delayTo) {
-  setTimeout(fn, Math.random() * (delayTo - delayFrom) + delayFrom);
+  return setTimeout(fn, Math.random() * (delayTo - delayFrom) + delayFrom);
 };
 
 var self = {
   query: function(term, callback) {
+    console.log('ODDB QUERYING', term);
     self.queryPage(term, function(err, response) {
-
       if (err) {
-        self.delay(function() {
-          callback(err);
-        });
-        return;
+        return self.delay(function() { callback(err); });
       }
 
       var finalResults = response.results;
       if (response.hasPagination) {
         async.mapSeries(self.ranges.slice(1), function(range, cb) {
-          self.delay(function() {
-            self.queryPage(term, range, cb);
-          });
+          self.delay(function() { self.queryPage(term, range, cb); });
         }, function(err, pageResponses) {
           callback(err, err ? null : finalResults.concat(
               _(pageResponses).pluck('results').flatten().value()));
         });
       } else {
-        self.delay(function() {
-          callback(null, finalResults);
-        });
+        self.delay(function() { callback(null, finalResults); });
       }
     });
   },
@@ -93,7 +84,6 @@ var self = {
       }).value();
 
       var hasMultiplePages = hasPagination(rows);
-      console.log('HAS_MULTIPLE_PAGES? ', hasMultiplePages, term);
       cb(null, {
         results: results,
         hasPagination: hasMultiplePages,
