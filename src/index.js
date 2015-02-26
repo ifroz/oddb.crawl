@@ -17,45 +17,39 @@ var columnName = 'name_1', fieldName = 'lastName';
 genFrequentFinder(columnName, fieldName)(function(results) {
   async.eachSeries(results, function forEachFrequentField(result, callback) {
     var queryTerm = result.values[fieldName];
-
     if (!queryTerm) { return callback(); }
-
-    var fileName = './jsons/' + fieldName + '/' + S(queryTerm).trim().camelize().s.replace('/', '_') + '.json';
-    var fileExists = fs.existsSync(fileName);
-
 
     var sqlQuery = { email: null };
     sqlQuery[fieldName] = queryTerm;
 
 
     //if (fileExists) {
-    //  console.log('SKIPPING', queryTerm);
-    //  return callback(null, []);
+      //console.log('SKIPPING', queryTerm);
+      //return process.nextTick(function() { callback(null, []); });
     //}
     async.parallel({
       sql: sqlWhere(sqlQuery),
       oddb: function(callback) {
-        if (fileExists) {
-          console.log('ODDB FROM FILE', queryTerm);
-          callback(null, JSON.parse(
-              fs.readFileSync(fileName, { encoding: 'utf8' })));
-        } else {
-          var terms = _.filter(
-              queryTerm.replace('.', '').replace('-', ' ').split(' '),
-              function(w) {
-                return w.length > 2;
-              });
-          console.log('ODDB QUERYING: ', queryTerm, terms);
-          async.mapSeries(terms, _.ary(oddb.query, 2), function(err, oddbResponses) {
-            callback(err, err ? null : _.flatten(oddbResponses));
-          });
-        }
+        var terms = _.filter(queryTerm.replace('.', '').replace('-', ' ').split(' '),
+            function(w) {
+              return w.length > 2;
+            });
+        async.mapSeries(terms, function processQueryTerm(term, cb) {
+          var fileName = './jsons/' + fieldName + '/' + S(queryTerm).trim().camelize().s.replace('/', '_') + '.json';
+          if ( fs.existsSync(fileName) ) {
+            cb(null, JSON.parse(fs.readFileSync(fileName, {encoding: 'utf8'})));
+          } else {
+            oddb.query(term, function(err, oddbResponse) {
+              if (err) { return cb(err); }
+              fs.writeFileSync(fileName, JSON.stringify(oddbResponse));
+              cb(null, oddbResponse);
+            });
+          }
+        }, function handleResponses(err, oddbResponses) {
+          callback(err, err ? null : _.flatten(oddbResponses));
+        });
       }
     }, function(err, res) {
-      if (!fileExists) {
-        fs.writeFileSync(fileName, JSON.stringify(res.oddb));
-      }
-
       var matches = matchDatasets( _.filter(res.oddb, 'email'), res.sql );
       var found = _.filter(matches, function(m) {
         return _.compact(m).length > 0;
@@ -88,6 +82,7 @@ genFrequentFinder(columnName, fieldName)(function(results) {
         }
         return sql;
       }));
+
       callback(err, err ? null : matches);
     });
   }, function(err, res) {
