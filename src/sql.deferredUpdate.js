@@ -1,13 +1,13 @@
 var _ = require('lodash');
-var Doctor = require('./doctor');
 var buffer = [],
-    flushCount = 0,
     chunkSize = 10;
+var sequelize = require('sequelize'),
+    Doctor = require('./doctor');
 
-function flush() {
+function flush(updateFields) {
   console.log('SQLOMG FLUSHING', buffer);
-  Doctor.bulkCreate(buffer, {
-    updateOnDuplicate: ['email', 'matchesJson']
+  Doctor.bulkCreate(_.clone(buffer), {
+    updateOnDuplicate: updateFields || ['email', 'matchesJson', 'similars']
   }).then(function() {
     console.log('SQLOMG SOOO DONE');
   }).catch(function(err) {
@@ -17,11 +17,11 @@ function flush() {
   buffer = [];
 }
 
-module.exports = function deferredUpdate(rows, force) {
+module.exports = function deferredUpdate(rows, force, updateFields) {
   //if (!_.isArray(rows)) rows = [rows];
   buffer = buffer.concat(_.compact(rows));
   console.log('SQLOMG SOOO LENGTH', buffer.length);
   if (buffer.length >= chunkSize || force) {
-    flush();
+    flush(updateFields);
   }
 };

@@ -22,7 +22,7 @@ var isDataRow = function(row) {
 
 var hasEmail = function(row) {
   return row.address.split('\n').pop().match('@') > 0;
-}
+};
 
 var setRandomTimeout = function(fn, delayFrom, delayTo) {
   return setTimeout(fn, Math.random() * (delayTo - delayFrom) + delayFrom);

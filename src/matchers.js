@@ -37,6 +37,7 @@ module.exports = {
   },
 
   phone: function(a, b) { // Swiss phone number preformat
+    if (!a.phone || !b.phone) { return false; }
     return !_.isEmpty(_.intersection.apply(null, _.map([a, b], function(doc) {
       return _(doc).pick(fields.phone).values().map(function(phoneNumber) {
         return phoneNumber.replace(/^00?/, '41'); // swiss country code.
