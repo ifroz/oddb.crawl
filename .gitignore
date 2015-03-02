@@ -4,3 +4,4 @@ projectFilesBackup
 .idea/*
 dumps/*
 jsons/*
+src/config.js
